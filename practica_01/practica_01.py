@@ -1,83 +1,73 @@
 '''
-
 PRACTICA 01 OAC
 
-- Jaramillo Rodriguez Leslie Citlali
-- Jimenez Ayala Yordi Josue
-- Salas Hernandez Camila Alexandra
-- Sole Pi Arnau Roger
-- Valenzuela Ascencio Gustavo
+This version subtracts consecutive odd numbers:
+1 + 3 + 5 + ... + (2n - 1) = n^2
 
-Implementar la raiz cuadrada de un entero
+By:
+- Ayala Hernández María Fernanda
+- Salazar Islas Luis Daniel
+- Tepal Briseño Hansel Yael
+- Ugartechea González Luis Antonio
 
 '''
 
 # --------------- ARM Assembly function ---------------
 
 @micropython.asm_thumb
-def binsqrt(r0):
-    mov(r4, r0)
-    mov(r1, 0)
-    add(r2, r0, 1)
-    mov(r5, 0)
+def odd_sqrt(r0):
+    mov(r4, r0) # Remaining value
+    mov(r1, 1) # Current odd number
+    mov(r2, 0) # Integer square root
 
     label(LOOP)
-    cmp(r1, r2)
+    cmp(r1, r4)
     bhi(DONE)
 
-    add(r3, r1, r2)
-    lsr(r3, r3, 1)
-
-    mov(r6, r3)
-    mul(r6, r3)
-
-    cmp(r6, r4)
-    bhi(TOO_HIGH)
-
-    mov(r5, r3)
-    add(r1, r3, 1)
-    b(LOOP)
-
-    label(TOO_HIGH)
-    sub(r2, r3, 1)
+    sub(r4, r4, r1)
+    add(r1, r1, 2)
+    add(r2, r2, 1)
     b(LOOP)
 
     label(DONE)
-    mov(r0, r5)
+    mov(r0, r2)
 
-# --------------- Mycropython function ---------------
+# --------------- MicroPython function ---------------
 
-def py_binsqrt(x):
-    l = 0
-    r = x+1
-    ans = -1
-    while l<=r:
-        mid = (l+r)//2
-        if(mid*mid <= x):
-            l = mid+1
-            ans = mid
-        else:
-            r = mid-1
+def py_odd_sqrt(x):
+    remainder = x
+    odd_number = 1
+    root = 0
 
-    return ans
+    while remainder >= odd_number:
+        remainder -= odd_number
+        odd_number += 2
+        root += 1
+
+    return root
+
 
 tests = [
-    (0,0),
-    (1,1),
-    (4,2),
-    (9,3),
-    (16,4),
-    (121,11),
-    (65536,256),
+    (0, 0),
+    (1, 1),
+    (2, 1),
+    (4, 2),
+    (8, 2),
+    (9, 3),
+    (15, 3),
+    (16, 4),
+    (26, 5),
+    (121, 11),
+    (65536, 256),
 ]
 
-print("=" * 36)
-print("     INTEGER SQUARE ROOT TESTS")
-print("=" * 36)
+print("=" * 42)
+print("  INTEGER SQUARE ROOT - ODD NUMBERS")
+print("=" * 42)
 print("\n[ARM Assembly]")
 
 for x, expected in tests:
-    result = binsqrt(x)
+    result = odd_sqrt(x)
     if result == expected:
         print("  PASS | input: {:>6} | sqrt: {:>4}".format(x, result))
     else:
@@ -86,12 +76,12 @@ for x, expected in tests:
 print("\n[MicroPython]")
 
 for x, expected in tests:
-    result = py_binsqrt(x)
+    result = py_odd_sqrt(x)
     if result == expected:
         print("  PASS | input: {:>6} | sqrt: {:>4}".format(x, result))
     else:
         print("  FAIL | input: {:>6} | expected: {:>4} | got: {:>4}".format(x, expected, result))
 
-print("\n" + "=" * 36)
-print("              DONE")
-print("=" * 36)
+print("\n" + "=" * 42)
+print("                 DONE")
+print("=" * 42)
