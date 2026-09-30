@@ -1,1 +1,6 @@
-*.pdf
+*.aux
+*.log
+*.out
+*.idx
+*.bcf
+*.xml
