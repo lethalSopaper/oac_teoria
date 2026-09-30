@@ -71,24 +71,27 @@ tests = [
     (65536,256),
 ]
 
-print()
-print("ARM Assembly version: ")
-print()
+print("=" * 36)
+print("     INTEGER SQUARE ROOT TESTS")
+print("=" * 36)
+print("\n[ARM Assembly]")
 
 for x, expected in tests:
     result = binsqrt(x)
     if result == expected:
-        print("OK! Value:", x, " Sqrt:", result)
+        print("  PASS | input: {:>6} | sqrt: {:>4}".format(x, result))
     else:
-        print("FAIL! Expected: ", expected, " Result: ", result)
+        print("  FAIL | input: {:>6} | expected: {:>4} | got: {:>4}".format(x, expected, result))
 
-print()
-print("Micropython version: ")
-print()
+print("\n[MicroPython]")
 
 for x, expected in tests:
     result = py_binsqrt(x)
     if result == expected:
-        print("OK! Value:", x, " Sqrt:", result)
+        print("  PASS | input: {:>6} | sqrt: {:>4}".format(x, result))
     else:
-        print("FAIL! Expected: ", expected, " Result: ", result)
+        print("  FAIL | input: {:>6} | expected: {:>4} | got: {:>4}".format(x, expected, result))
+
+print("\n" + "=" * 36)
+print("              DONE")
+print("=" * 36)

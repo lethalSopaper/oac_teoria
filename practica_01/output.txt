@@ -1,22 +1,27 @@
 cp practica_01/practica_01.py :main.py
 Up to date: main.py
+====================================
+     INTEGER SQUARE ROOT TESTS
+====================================
 
-ARM Assembly version: 
+[ARM Assembly]
+  PASS | input:      0 | sqrt:    0
+  PASS | input:      1 | sqrt:    1
+  PASS | input:      4 | sqrt:    2
+  PASS | input:      9 | sqrt:    3
+  PASS | input:     16 | sqrt:    4
+  PASS | input:    121 | sqrt:   11
+  PASS | input:  65536 | sqrt:  256
 
-OK! Value: 0  Sqrt: 0
-OK! Value: 1  Sqrt: 1
-OK! Value: 4  Sqrt: 2
-OK! Value: 9  Sqrt: 3
-OK! Value: 16  Sqrt: 4
-OK! Value: 121  Sqrt: 11
-OK! Value: 65536  Sqrt: 256
+[MicroPython]
+  PASS | input:      0 | sqrt:    0
+  PASS | input:      1 | sqrt:    1
+  PASS | input:      4 | sqrt:    2
+  PASS | input:      9 | sqrt:    3
+  PASS | input:     16 | sqrt:    4
+  PASS | input:    121 | sqrt:   11
+  PASS | input:  65536 | sqrt:  256
 
-Micropython version: 
-
-OK! Value: 0  Sqrt: 0
-OK! Value: 1  Sqrt: 1
-OK! Value: 4  Sqrt: 2
-OK! Value: 9  Sqrt: 3
-OK! Value: 16  Sqrt: 4
-OK! Value: 121  Sqrt: 11
-OK! Value: 65536  Sqrt: 256
+====================================
+              DONE
+====================================
