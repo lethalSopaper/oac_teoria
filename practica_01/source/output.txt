@@ -1,0 +1,47 @@
+cp practica_01/source/practica_01.py :main.py
+Up to date: main.py
+==========================================
+  INTEGER SQUARE ROOT - ODD NUMBERS
+==========================================
+
+[ARM Assembly]
+  PASS | input:      0 | sqrt:    0
+  PASS | input:      1 | sqrt:    1
+  PASS | input:      2 | sqrt:    1
+  PASS | input:      3 | sqrt:    1
+  PASS | input:      4 | sqrt:    2
+  PASS | input:      5 | sqrt:    2
+  PASS | input:      8 | sqrt:    2
+  PASS | input:      9 | sqrt:    3
+  PASS | input:     10 | sqrt:    3
+  PASS | input:     24 | sqrt:    4
+  PASS | input:     25 | sqrt:    5
+  PASS | input:     35 | sqrt:    5
+  PASS | input:     36 | sqrt:    6
+  PASS | input:     50 | sqrt:    7
+  PASS | input:     99 | sqrt:    9
+  PASS | input:    100 | sqrt:   10
+  PASS | input:   1000 | sqrt:   31
+
+[MicroPython]
+  PASS | input:      0 | sqrt:    0
+  PASS | input:      1 | sqrt:    1
+  PASS | input:      2 | sqrt:    1
+  PASS | input:      3 | sqrt:    1
+  PASS | input:      4 | sqrt:    2
+  PASS | input:      5 | sqrt:    2
+  PASS | input:      8 | sqrt:    2
+  PASS | input:      9 | sqrt:    3
+  PASS | input:     10 | sqrt:    3
+  PASS | input:     24 | sqrt:    4
+  PASS | input:     25 | sqrt:    5
+  PASS | input:     35 | sqrt:    5
+  PASS | input:     36 | sqrt:    6
+  PASS | input:     50 | sqrt:    7
+  PASS | input:     99 | sqrt:    9
+  PASS | input:    100 | sqrt:   10
+  PASS | input:   1000 | sqrt:   31
+
+==========================================
+                 DONE
+==========================================
