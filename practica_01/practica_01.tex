@@ -1,0 +1,88 @@
+\documentclass[12pt, letterpaper]{article}
+
+\input{template/preamble.tex}
+
+\input{template/listings_config.tex}
+
+%\input{template/header.tex}
+
+\begin{document}
+
+\input{template/title_page.tex}
+
+\section{Objetivo}
+En esta práctica se implementó una función para calcular la raíz entera de un número mediante la resta sucesiva de números impares. La idea principal es que la suma de los primeros $n$ números impares es $n^2$, por lo que al restar $1, 3, 5, 7, \dots$ se puede contar cuántas restas fueron necesarias para llegar a cero o a un valor menor.
+
+\section{Desarrollo}
+
+El desarrollo dela práctica consistió en implementar la función de raíz entera en dos lenguajes: MicroPython y ensamblador ARM. La función toma un número entero positivo y devuelve su raíz entera.
+
+El algoritmo funciona de la siguiente manera:
+\begin{itemize}
+    \item Inicializa el resto con el valor original.
+    \item Resta secuencialmente $1, 3, 5, 7, \dots$
+    \item Cada resta exitosa representa una unidad de la raíz.
+    \item Cuando el resto ya no alcanza al siguiente número impar, se termina y se
+          devuelve el contador.
+\end{itemize}
+
+Por ejemplo, para $x=25$: $$25 - 1 - 3 - 5 - 7 - 9 = 0$$ Se realizaron 5
+restas, por lo que $\lfloor \sqrt{25} \rfloor = 5$.
+
+\section{Implementación en Python}
+
+La implementación directa en MicroPython permite probar la lógica de manera sencilla. La función \texttt{py\_odd\_sqrt} recibe un número entero y devuelve su raíz entera.
+
+\lstinputlisting[style=pythonstyle, firstline=37, lastline=47, caption={Implementación principal en Python}]{source/practica_01.py}
+
+\section{Implementación en ARM}
+
+La función ARM realiza el mismo procedimiento en lenguaje ensamblador, usando
+registros para llevar el valor restante, el número impar actual y el contador
+de la raíz. La lógica es equivalente a la versión en Python, pero optimizada
+para ejecutarse directamente en la placa con la función \texttt{odd\_sqrt}.
+
+\lstinputlisting[style=pythonstyle, firstline=17, lastline=33, caption={Implementación principal en ARM}]{source/practica_01.py}
+
+\section{Pruebas y Validación}
+
+Esta sección de código ejecuta una serie de pruebas en donde se compara la salida de el calculo obtenido para la solución en Python y la solución en ARM con una serie de valores esperados. Se imprimen los resultados de cada prueba, indicando si la prueba pasó o falló.
+
+\lstinputlisting[style=pythonstyle, firstline=50, lastline=93, caption={Validación de casos de prueba en Python}]{source/practica_01.py}
+
+\section{Ejecución en la Raspberry Pi Pico}
+
+El archivo principal se puede cargar a la placa con el siguiente comando desde la carpeta raíz del proyecto:
+
+\begin{lstlisting}[style=bashstyle]
+./upload.sh practica_01/source/practica_01.py
+\end{lstlisting}
+
+El contenido del script que realiza esta ejecución es el siguiente:
+
+\lstinputlisting[style=bashstyle, caption={Script de carga a la Pico}]{../upload.sh}
+
+Este script:
+\begin{itemize}
+    \item valida que el archivo exista,
+    \item libera el puerto si está ocupado,
+    \item copia el programa a la Pico como \texttt{:main.py},
+    \item y lo ejecuta inmediatamente con \texttt{mpremote}.
+\end{itemize}
+
+\section{Resultados}
+
+La salida real obtenida al ejecutar el programa se muestra a continuación:
+
+\lstinputlisting[style=bashstyle, caption={Salida generada por la práctica}]{source/output.txt}
+
+\section{Conclusión}
+
+La práctica demostró que la raíz entera puede obtenerse de manera eficiente a
+partir de la suma de números impares. La versión en Python permite entender
+claramente el procedimiento, mientras que la versión en ARM confirma la
+viabilidad de la misma lógica en un entorno embebido.
+
+%\input{template/biblio.tex}
+
+\end{document}
