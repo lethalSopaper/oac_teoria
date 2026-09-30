@@ -21,12 +21,12 @@ def odd_sqrt(r0):
     mov(r2, 0) # Integer square root
 
     label(LOOP)
-    cmp(r1, r4)
+    cmp(r1, r4) # Check if the current odd number is greater than the remaining value
     bhi(DONE)
 
-    sub(r4, r4, r1)
-    add(r1, r1, 2)
-    add(r2, r2, 1)
+    sub(r4, r4, r1) # Subtract the current odd number from the remaining value
+    add(r1, r1, 2) # Increment the current odd number by 2
+    add(r2, r2, 1) # Counts one successful subtraction, which corresponds to the integer square root
     b(LOOP)
 
     label(DONE)
@@ -51,14 +51,20 @@ tests = [
     (0, 0),
     (1, 1),
     (2, 1),
+    (3, 1),
     (4, 2),
+    (5, 2),
     (8, 2),
     (9, 3),
-    (15, 3),
-    (16, 4),
-    (26, 5),
-    (121, 11),
-    (65536, 256),
+    (10, 3),
+    (24, 4),
+    (25, 5),
+    (35, 5),
+    (36, 6),
+    (50, 7),
+    (99, 9),
+    (100, 10),
+    (1000, 31),
 ]
 
 print("=" * 42)
