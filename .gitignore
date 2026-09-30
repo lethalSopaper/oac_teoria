@@ -1,6 +1,9 @@
+# LaTeX generated files
 *.aux
 *.log
 *.out
 *.idx
 *.bcf
 *.xml
+*.run.xml
+*.synctex.gz
