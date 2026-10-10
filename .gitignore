@@ -7,3 +7,6 @@
 *.xml
 *.run.xml
 *.synctex.gz
+
+# Temporary directories
+temp/
