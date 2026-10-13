@@ -147,19 +147,102 @@ mediante \texttt{mpremote}.
 
 \lstinputlisting[style=bashstyle, caption={Script utilizado para cargar el programa}]{../upload.sh}
 
-\section{Resultados}
+\section{Interfaz de monitoreo y graficación}
 
-Al iniciar el programa se muestra el mensaje de arranque y después se actualiza
-una sola línea de la terminal con el valor de la entrada y la salida:
+Para observar el comportamiento del sistema se desarrolló una interfaz en
+Python que recibe las muestras de la Raspberry Pi Pico 2 W mediante el puerto
+serial USB. El programa de la Pico envía una línea por muestra con el formato
+\texttt{DATA,tiempo\_ms,entrada,salida}. La interfaz separa estos cuatro
+campos, convierte la entrada y la salida a valores numéricos y los dibuja en
+dos gráficas actualizadas en tiempo real.
+
+La interfaz se ejecuta en la computadora, no en la Pico. Por esta razón, el
+puerto serial debe quedar libre después de cargar el programa. El monitor se
+inicia desde la carpeta \texttt{practica\_02} con:
+
 \begin{lstlisting}[style=bashstyle]
-Sistema de control de segundo orden iniciado a 40 Hz...
-x[k]: valor_de_la_entrada | y[k]: valor_de_la_salida
+python3 graficar_practica_02.py /dev/ttyACM0
 \end{lstlisting}
 
-El retorno de carro \texttt{r} evita crear una línea nueva por cada muestra.
+La ventana permite conectar y desconectar el puerto, pausar la visualización,
+limpiar el historial y guardar las muestras recibidas en un archivo CSV. El
+programa completo de la interfaz es el siguiente:
+
+\lstinputlisting[style=pythonstyle, caption={Interfaz Python para graficar la entrada y la salida}]{graficar_practica_02.py}
+
+\section{Resultados}
+
+Al iniciar el programa se muestra el mensaje de arranque y después se envía una
+línea serial por cada muestra:
+\begin{lstlisting}[style=bashstyle]
+Sistema de control de segundo orden iniciado a 40 Hz...
+DATA,tiempo_ms,entrada,salida
+\end{lstlisting}
+
 La lectura se actualiza nominalmente cada 25 ms. El filtro EMA reduce las
 variaciones rápidas del potenciómetro y los polos de magnitud 0.8 evitan el
-crecimiento de la respuesta que anteriormente producía valores \texttt{nan}.
+crecimiento de la respuesta. La señal \texttt{x[k]} corresponde a la entrada
+filtrada del ADC, mientras que \texttt{y[k]} es la salida calculada mediante la
+ecuación de diferencias; no representa una tensión medida en un pin de salida.
+
+\subsection{Pruebas con diferentes coeficientes}
+
+Para comparar la respuesta del sistema se realizaron tres pruebas. En cada caso
+se modificaron los coeficientes del programa, se volvió a cargar el firmware en
+la Pico y se guardó una captura de la interfaz. Las imágenes deben colocarse en
+la carpeta \texttt{practica\_02/img/} con los nombres indicados.
+
+\begin{table}[H]
+    \renewcommand{\arraystretch}{1.2}
+    \centering
+    \begin{tabular}{|c|ccc|cc|l|}
+        \hline
+        \rowcolor{black!80}
+        \textcolor{white}{Prueba} & \textcolor{white}{$b_0$} & \textcolor{white}{$b_1$} & \textcolor{white}{$b_2$} & \textcolor{white}{$a_1$} & \textcolor{white}{$a_2$} & \textcolor{white}{Comportamiento} \\
+        \hline
+        1 & 0.010 & 0.020 & 0.010 & -1.6  & 0.64  & Respuesta base \\
+        2 & 0.040 & 0.080 & 0.040 & -1.2  & 0.36  & Más rápida y amortiguada \\
+        3 & 0.005 & 0.010 & 0.005 & -1.8  & 0.81  & Más lenta \\
+        \hline
+    \end{tabular}
+    \caption{Coeficientes utilizados en las pruebas experimentales.}
+    \label{tab:coeficientes-pruebas}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \IfFileExists{img/grafica_01.png}{%
+        \includegraphics[width=\textwidth]{grafica_01.png}%
+    }{%
+        \fbox{\parbox[c][4cm][c]{0.85\textwidth}{\centering Insertar aquí \texttt{img/grafica\_01.png}}}%
+    }
+    \caption{Respuesta del sistema con los coeficientes de la prueba 1.}
+    \label{fig:grafica-prueba-1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \IfFileExists{img/grafica_02.png}{%
+        \includegraphics[width=\textwidth]{grafica_02.png}%
+    }{%
+        \fbox{\parbox[c][4cm][c]{0.85\textwidth}{\centering Insertar aquí \texttt{img/grafica\_02.png}}}%
+    }
+    \caption{Respuesta del sistema con los coeficientes de la prueba 2.}
+    \label{fig:grafica-prueba-2}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \IfFileExists{img/grafica_03.png}{%
+        \includegraphics[width=\textwidth]{grafica_03.png}%
+    }{%
+        \fbox{\parbox[c][4cm][c]{0.85\textwidth}{\centering Insertar aquí \texttt{img/grafica\_03.png}}}%
+    }
+    \caption{Respuesta del sistema con los coeficientes de la prueba 3.}
+    \label{fig:grafica-prueba-3}
+\end{figure}
+
+Las tres pruebas confirmaron que la posición de los polos modifica directamente la rapidez de respuesta del sistema. Los polos de magnitud 0.6 produjeron la respuesta más rápida, los polos de magnitud 0.8 produjeron una respuesta intermedia y los polos de magnitud 0.9 produjeron la respuesta más lenta. En los tres casos el sistema permaneció estable porque los polos se mantuvieron dentro del círculo unitario.
 
 La salida también puede almacenarse en un archivo desde la terminal:
 \begin{lstlisting}[style=bashstyle]

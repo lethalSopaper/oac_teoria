@@ -66,6 +66,48 @@ The default serial device is `/dev/ttyACM0`. To specify another device:
 ./upload.sh practica_08.py /dev/ttyACM1
 ```
 
+## Graficar la práctica 02
+
+La práctica 02 envía cada muestra con el formato
+`DATA,tiempo_ms,entrada,salida`. Para visualizarla en tiempo real, carga el
+firmware y termina la sesión de `mpremote` con `Ctrl+C`:
+
+```bash
+cd practica_02
+../upload.sh source/practica_02.py /dev/ttyACM0
+```
+
+Después abre la interfaz en otra terminal:
+
+```bash
+python3 graficar_practica_02.py /dev/ttyACM0
+```
+
+También se puede automatizar la copia del firmware, el reinicio de la Pico y
+la apertura de la interfaz con un solo comando:
+
+```bash
+cd practica_02
+./ejecutar_practica_02.sh
+```
+
+Para utilizar otro puerto:
+
+```bash
+./ejecutar_practica_02.sh /dev/ttyACM1
+```
+
+Antes de ejecutarlo se debe cerrar Thonny y cualquier otro programa que esté
+usando el puerto serial.
+
+La ventana permite conectar y desconectar el puerto, pausar la gráfica,
+limpiar las muestras y guardar los datos recibidos como CSV. Requiere
+`pyserial` y Tkinter; en Linux se pueden instalar con:
+
+```bash
+python3 -m pip install pyserial
+```
+
 ## Current practice
 
 `practica_01.py` compares an ARM Thumb assembly implementation and a pure

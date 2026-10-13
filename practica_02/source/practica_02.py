@@ -3,7 +3,7 @@ SISTEMA DE CONTROL DE SEGUNDO ORDEN
 
 Esta implementación ejecuta una función de transferencia discreta H(z)
 basada en un sistema de segundo orden continuo.
-Se utiliza un temporizador por hardware de la Raspberry Pi Pico 2W 
+Se utiliza un temporizador por hardware de la Raspberry Pi Pico 2W
 para garantizar un tiempo de muestreo estricto de Ts = 0.025s (40 Hz).
 
 Por:
@@ -34,6 +34,20 @@ b2 = 0.01
 a1 = -1.6
 a2 = 0.64
 
+# Sistema con respuesta más rápida y amortiguada:
+# b0 = 0.04
+# b1 = 0.08
+# b2 = 0.04
+# a1 = -1.2
+# a2 = 0.36
+
+# Sistema con respuesta más lenta:
+# b0 = 0.005
+# b1 = 0.010
+# b2 = 0.005
+# a1 = -1.8
+# a2 = 0.81
+
 # --- VARIABLES DE ESTADO (Memoria del sistema) ---
 x_k1 = 0.0
 x_k2 = 0.0
@@ -47,7 +61,6 @@ nueva_muestra = False
 ALFA_ENTRADA = 0.1
 LIMITE_SALIDA = 65535.0
 
-# --- CONFIGURACIÓN DE PINES ---
 entrada_adc = ADC(26)
 
 def iteracion_control(timer):
@@ -95,7 +108,9 @@ try:
     while True:
         if nueva_muestra:
             nueva_muestra = False
-            print(f"\r\x1b[2Kx[k]: {ultima_entrada} | y[k]: {ultima_salida}", end="")
+            # Formato consumido por la interfaz gráfica: DATA,tiempo_ms,x,y.
+            print("DATA,{},{:.3f},{:.3f}".format(
+                time.ticks_ms(), ultima_entrada, ultima_salida))
         time.sleep_ms(1)
 except KeyboardInterrupt:
     # Detener el timer si se cancela la ejecución en la consola
