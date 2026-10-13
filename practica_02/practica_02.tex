@@ -1,0 +1,284 @@
+\documentclass[12pt, letterpaper]{article}
+
+\input{template/preamble.tex}
+
+\input{template/listings_config.tex}
+
+\newcommand{\numeroPractica}{2}
+\newcommand{\tituloPractica}{Sistema de control de segundo orden}
+
+%\input{template/header.tex}
+
+\begin{document}
+
+\input{template/title_page.tex}
+
+\section{Objetivo}
+
+En esta práctica se implementó en una Raspberry Pi Pico 2 W un sistema de
+control de segundo orden en tiempo discreto. El sistema lee la posición de un
+potenciómetro mediante el convertidor analógico-digital (ADC), calcula la
+salida usando una ecuación de diferencias y ejecuta el proceso cada $T_s=0.025\
+    \mathrm{s}$, equivalente a una frecuencia de muestreo de $f_s=40\ \mathrm{Hz}$.
+
+El objetivo es relacionar la función de transferencia continua con una
+implementación digital en MicroPython y observar el comportamiento del sistema
+directamente sobre el hardware.
+
+\section{Fundamentos teóricos}
+
+Una función de transferencia de segundo orden puede escribirse como
+\begin{equation}
+    H(s)=\frac{\omega_0}{s^2+2\omega_0s+\omega_0^2}.
+\end{equation}
+Para trabajar con la Raspberry Pi Pico 2 W, el sistema continuo debe
+discretizarse para obtener una función $H(z)$ y una ecuación de diferencias.
+
+El periodo de muestreo utilizado es
+\begin{equation}
+    T_s=0.025\ \mathrm{s},
+    \qquad f_s=\frac{1}{T_s}=40\ \mathrm{Hz}.
+\end{equation}
+
+La implementación utiliza la forma discreta
+\begin{equation}
+    H(z)=\frac{b_0+b_1z^{-1}+b_2z^{-2}}
+    {1+a_1z^{-1}+a_2z^{-2}}.
+\end{equation}
+
+Despejando la salida se obtiene la ecuación de diferencias
+\begin{equation}
+    y[k]=b_0x[k]+b_1x[k-1]+b_2x[k-2]
+    -a_1y[k-1]-a_2y[k-2].
+\end{equation}
+
+En el programa se emplean los coeficientes
+\begin{equation}
+    b_0=0.01,\quad b_1=0.02,\quad b_2=0.01,
+    \qquad a_1=-1.6,\quad a_2=0.64.
+\end{equation}
+
+Por tanto, el denominador queda como
+\begin{equation}
+    z^2-1.6z+0.64=(z-0.8)^2.
+\end{equation}
+
+Los polos tienen magnitud $0.8$, por lo que se encuentran dentro del círculo
+unitario y el filtro discreto es estable. Además, la suma de los coeficientes
+del numerador es igual a la evaluación del denominador en $z=1$, por lo que la
+ganancia de corriente directa es aproximadamente uno.
+
+\section{Desarrollo}
+
+El programa se divide en cuatro tareas principales:
+\begin{itemize}
+    \item configurar el ADC del pin 26 para leer el potenciómetro;
+    \item suavizar la lectura mediante un filtro exponencial;
+    \item calcular la salida del sistema con la ecuación de diferencias;
+    \item ejecutar las tareas periódicamente y mostrar la muestra actual.
+\end{itemize}
+
+El ADC de la Pico entrega valores entre 0 y 65535. Para reducir las variaciones
+rápidas del potenciómetro se utiliza un filtro de promedio exponencial:
+\begin{equation}
+    x_f[k]=\alpha x_{ADC}[k]+(1-\alpha)x_f[k-1],
+    \qquad \alpha=0.1.
+\end{equation}
+
+Un valor pequeño de $\alpha$ produce una lectura más suave, aunque también
+incrementa el tiempo de respuesta ante cambios del potenciómetro.
+
+\subsection{Estados del sistema}
+
+Las variables \texttt{x\_k1} y \texttt{x\_k2} almacenan las dos entradas
+anteriores, mientras que \texttt{y\_k1} y \texttt{y\_k2} almacenan las dos
+salidas anteriores. Al terminar cada iteración, los estados se desplazan para
+que estén disponibles en el siguiente periodo de muestreo.
+
+\subsection{Temporizador e interrupción}
+
+El temporizador se configura con un periodo de 25 ms:
+\begin{lstlisting}[style=pythonstyle]
+timer_muestreo.init(period=25,
+					mode=Timer.PERIODIC,
+					callback=iteracion_control)
+\end{lstlisting}
+
+Cada interrupción ejecuta \texttt{iteracion\_control}, lee el ADC, actualiza el
+filtro y calcula la salida. La interrupción no imprime directamente en la
+terminal: solo guarda la última muestra. El bucle principal se encarga de
+imprimirla, evitando operaciones de salida dentro de la interrupción.
+
+\subsection{Protecciones de estabilidad}
+
+El programa verifica que la salida sea finita mediante \texttt{isfinite}. Si se
+detecta \texttt{nan} o infinito, se reinician los estados de salida. También se
+limita la salida al intervalo del ADC, $[-65535,65535]$, para evitar que una
+condición anormal se propague al resto del sistema.
+
+\section{Implementación en MicroPython}
+
+El código completo utilizado en la Raspberry Pi Pico 2 W es el siguiente.
+
+\lstinputlisting[style=pythonstyle, caption={Implementación del sistema de control}]{source/practica_02.py}
+
+\section{Conexión del potenciómetro}
+
+El potenciómetro se conecta entre 3.3 V y GND, y su terminal central se lleva
+al pin ADC26. Para disminuir el ruido eléctrico se recomienda colocar un
+capacitor de 100 nF entre ADC26 y GND, lo más cerca posible de la placa. Una
+resistencia serie de aproximadamente 1 k$\Omega$ puede colocarse entre el
+cursor del potenciómetro y el ADC para formar un filtro RC junto con el
+capacitor.
+
+La Pico y el potenciómetro deben compartir la misma referencia de tierra. No
+debe aplicarse 5 V al ADC, ya que sus entradas trabajan con el nivel de 3.3 V.
+
+\section{Ejecución en la Raspberry Pi Pico}
+
+El programa se carga y ejecuta desde la carpeta \texttt{practica\_02} con:
+\begin{lstlisting}[style=bashstyle]
+../upload.sh source/practica_02.py
+\end{lstlisting}
+
+El script de carga verifica que el archivo exista, libera el puerto serial si
+está ocupado, copia el programa a la Pico como \texttt{main.py} y lo ejecuta
+mediante \texttt{mpremote}.
+
+\lstinputlisting[style=bashstyle, caption={Script utilizado para cargar el programa}]{../upload.sh}
+
+\section{Interfaz de monitoreo y graficación}
+
+Para observar el comportamiento del sistema se desarrolló una interfaz en
+Python que recibe las muestras de la Raspberry Pi Pico 2 W mediante el puerto
+serial USB. El programa de la Pico envía una línea por muestra con el formato
+\texttt{DATA,tiempo\_ms,entrada,salida}. La interfaz separa estos cuatro
+campos, convierte la entrada y la salida a valores numéricos y los dibuja en
+dos gráficas actualizadas en tiempo real.
+
+La interfaz se ejecuta en la computadora, no en la Pico. Por esta razón, el
+puerto serial debe quedar libre después de cargar el programa. El monitor se
+inicia desde la carpeta \texttt{practica\_02} con:
+
+\begin{lstlisting}[style=bashstyle]
+python3 graficar_practica_02.py /dev/ttyACM0
+\end{lstlisting}
+
+La ventana permite conectar y desconectar el puerto, pausar la visualización,
+limpiar el historial y guardar las muestras recibidas en un archivo CSV. El
+programa completo de la interfaz es el siguiente:
+
+\lstinputlisting[style=pythonstyle, caption={Interfaz Python para graficar la entrada y la salida}]{graficar_practica_02.py}
+
+\section{Resultados}
+
+Al iniciar el programa se muestra el mensaje de arranque y después se envía una
+línea serial por cada muestra:
+\begin{lstlisting}[style=bashstyle]
+Sistema de control de segundo orden iniciado a 40 Hz...
+DATA,tiempo_ms,entrada,salida
+\end{lstlisting}
+
+La lectura se actualiza nominalmente cada 25 ms. El filtro EMA reduce las
+variaciones rápidas del potenciómetro y los polos de magnitud 0.8 evitan el
+crecimiento de la respuesta. La señal \texttt{x[k]} corresponde a la entrada
+filtrada del ADC, mientras que \texttt{y[k]} es la salida calculada mediante la
+ecuación de diferencias; no representa una tensión medida en un pin de salida.
+
+\subsection{Pruebas con diferentes coeficientes}
+
+Para comparar la respuesta del sistema se realizaron tres pruebas. En cada caso
+se modificaron los coeficientes del programa, se volvió a cargar el firmware en
+la Pico y se guardó una captura de la interfaz. Las imágenes deben colocarse en
+la carpeta \texttt{practica\_02/img/} con los nombres indicados.
+
+\begin{table}[H]
+    \renewcommand{\arraystretch}{1.2}
+    \centering
+    \begin{tabular}{|c|ccc|cc|l|}
+        \hline
+        \rowcolor{black!80}
+        \textcolor{white}{Prueba} & \textcolor{white}{$b_0$} & \textcolor{white}{$b_1$} & \textcolor{white}{$b_2$} & \textcolor{white}{$a_1$} & \textcolor{white}{$a_2$} & \textcolor{white}{Comportamiento} \\
+        \hline
+        1 & 0.010 & 0.020 & 0.010 & -1.6  & 0.64  & Respuesta base \\
+        2 & 0.040 & 0.080 & 0.040 & -1.2  & 0.36  & Más rápida y amortiguada \\
+        3 & 0.005 & 0.010 & 0.005 & -1.8  & 0.81  & Más lenta \\
+        \hline
+    \end{tabular}
+    \caption{Coeficientes utilizados en las pruebas experimentales.}
+    \label{tab:coeficientes-pruebas}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \IfFileExists{img/grafica_01.png}{%
+        \includegraphics[width=\textwidth]{grafica_01.png}%
+    }{%
+        \fbox{\parbox[c][4cm][c]{0.85\textwidth}{\centering Insertar aquí \texttt{img/grafica\_01.png}}}%
+    }
+    \caption{Respuesta del sistema con los coeficientes de la prueba 1.}
+    \label{fig:grafica-prueba-1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \IfFileExists{img/grafica_02.png}{%
+        \includegraphics[width=\textwidth]{grafica_02.png}%
+    }{%
+        \fbox{\parbox[c][4cm][c]{0.85\textwidth}{\centering Insertar aquí \texttt{img/grafica\_02.png}}}%
+    }
+    \caption{Respuesta del sistema con los coeficientes de la prueba 2.}
+    \label{fig:grafica-prueba-2}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \IfFileExists{img/grafica_03.png}{%
+        \includegraphics[width=\textwidth]{grafica_03.png}%
+    }{%
+        \fbox{\parbox[c][4cm][c]{0.85\textwidth}{\centering Insertar aquí \texttt{img/grafica\_03.png}}}%
+    }
+    \caption{Respuesta del sistema con los coeficientes de la prueba 3.}
+    \label{fig:grafica-prueba-3}
+\end{figure}
+
+Las tres pruebas confirmaron que la posición de los polos modifica directamente la rapidez de respuesta del sistema. Los polos de magnitud 0.6 produjeron la respuesta más rápida, los polos de magnitud 0.8 produjeron una respuesta intermedia y los polos de magnitud 0.9 produjeron la respuesta más lenta. En los tres casos el sistema permaneció estable porque los polos se mantuvieron dentro del círculo unitario.
+
+La salida también puede almacenarse en un archivo desde la terminal:
+\begin{lstlisting}[style=bashstyle]
+../upload.sh source/practica_02.py >> source/output.txt
+\end{lstlisting}
+
+\section{Conclusiones individuales}
+
+\subsection{Ayala Hernández María Fernanda}
+
+La práctica permitió implementar un sistema de segundo orden en tiempo discreto
+sobre una Raspberry Pi Pico 2 W. El uso del ADC y del temporizador mostró cómo
+un microcontrolador puede adquirir señales y procesarlas con un periodo de
+muestreo definido.
+
+\subsection{Salazar Islas Luis Daniel}
+
+La implementación permitió relacionar una función de transferencia con una
+ecuación de diferencias ejecutable en MicroPython. También se observó que la
+elección de los polos es fundamental para evitar que la respuesta digital sea
+inestable.
+
+\subsection{Tepal Briseño Hansel Yael}
+
+El filtrado exponencial ayudó a reducir el ruido producido por el
+potenciómetro. Esta práctica mostró que la estabilidad depende tanto del
+algoritmo de control como de la calidad de la señal de entrada y de la conexión
+física del circuito.
+
+\subsection{Ugartechea González Luis Antonio}
+
+La ejecución en la Raspberry Pi Pico 2 W permitió comprobar la interacción
+entre el software y el hardware. El temporizador periódico garantiza el ritmo
+de procesamiento, mientras que la salida en la terminal facilita observar el
+comportamiento del sistema durante las pruebas.
+
+%\input{template/biblio.tex}
+
+\end{document}
